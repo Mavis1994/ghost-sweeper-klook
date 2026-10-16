@@ -24,8 +24,8 @@ function showRegistration(){
 $('register-result').onclick=showRegistration;
 $('winner-form').addEventListener('submit',async event=>{
  event.preventDefault();if(game.state!=='won'||!winnerRecord||winnerRecord.submitted)return;
- const employeeId=$('employee-id').value.trim();
- if(!employeeId){$('employee-id').setCustomValidity('请输入工号');$('employee-id').reportValidity();return;}
+ const employeeId=$('employee-id').value.trim().toUpperCase();$('employee-id').value=employeeId;
+ if(!/^K\d{6}$/.test(employeeId)){$('employee-id').setCustomValidity('工号格式不正确，应为 K + 6位数字，例如 K007309');$('registration-status').textContent='工号格式不正确，应为 K + 6位数字，例如 K007309';$('employee-id').reportValidity();return;}
  const endpoint=window.GHOST_CONFIG?.registrationEndpoint;if(!endpoint)return;
  const record=winnerRecord,button=$('submit-winner');button.disabled=true;$('registration-status').textContent='正在提交…';
  const pad=n=>String(n).padStart(2,'0'),d=new Date(record.completedAt);
@@ -49,7 +49,7 @@ $('winner-form').addEventListener('submit',async event=>{
  }
  finally{clearTimeout(timeout);if(winnerRecord===record)button.disabled=record.submitted;}
 });
-$('employee-id').addEventListener('input',()=>$('employee-id').setCustomValidity(''));
+$('employee-id').addEventListener('input',()=>{$('employee-id').setCustomValidity('');if($('registration-status').textContent.startsWith('工号格式'))$('registration-status').textContent='';});
 
 const voxelField=document.querySelector('.voxel-field');
 for(let i=0;i<46;i++){const block=document.createElement('i');block.style.cssText=`--x:${(i*37)%100}%;--y:${(i*19)%100}%;--size:${24+(i*13)%42}px;--hue:${i%3===0?32:265};--delay:${i%7}s`;voxelField.append(block);}

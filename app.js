@@ -33,7 +33,7 @@ $('winner-form').addEventListener('submit',async event=>{
  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),15000);
  const done=()=>{record.submitted=true;if(winnerRecord===record){$('registration-status').textContent='登记成功，感谢参与！';$('employee-id').disabled=true;}};
  try{
-  // 优先标准 JSON 请求（可读取 Lark 的返回结果）
+  // 1) 标准 JSON 请求；若 Lark 允许跨域，可读到回执
   const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:controller.signal});
   if(!response.ok)throw Error('submit');
   let result={};try{result=await response.json()}catch(e){}
@@ -42,9 +42,9 @@ $('winner-form').addEventListener('submit',async event=>{
  }catch(error){
   if(error.name==='AbortError'){if(winnerRecord===record)$('registration-status').textContent='提交超时，请重试。';}
   else if(error instanceof TypeError){
-   // 浏览器因跨域限制读不到 Lark 返回时，改用 no-cors 直接发送（无法读取回执）
-   try{await fetch(endpoint,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)});done();}
-   catch(e2){if(winnerRecord===record)$('registration-status').textContent='未能确认登记成功，请重试。';}
+   // 2) 浏览器因跨域拦截了 JSON 请求（此时请求并未发出）：改用不触发预检的简单请求直接发送
+   try{await fetch(endpoint,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(payload)});done();}
+   catch(e2){if(winnerRecord===record)$('registration-status').textContent='网络异常，请重试。';}
   }else if(winnerRecord===record)$('registration-status').textContent='未能确认登记成功，请重试。';
  }
  finally{clearTimeout(timeout);if(winnerRecord===record)button.disabled=record.submitted;}
